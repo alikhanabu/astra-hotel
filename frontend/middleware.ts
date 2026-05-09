@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get("accessToken")?.value;
   const { pathname } = request.nextUrl;
 
   const isAuthPage =
@@ -12,12 +11,9 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/bookings") ||
     pathname.startsWith("/admin");
 
-  if (!token && isProtected) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  if (token && isAuthPage) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  // Не блокируем — даём клиенту самому проверить авторизацию
+  if (isProtected) {
+    return NextResponse.next();
   }
 
   return NextResponse.next();
