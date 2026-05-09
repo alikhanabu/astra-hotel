@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum RoomStatus {
+  available
+  booked
+  maintenance
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  cancelled
+}
+
+model User {
+  id           String         @id @default(uuid())
+  name         String
+  email        String         @unique
+  password     String
+  role         Role           @default(USER)
+  bookings     Booking[]
+  refreshTokens RefreshToken[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([email])
+}
+
+model Room {
+  id          String      @id @default(uuid())
+  title       String
+  description String?
+  price       Float
+  capacity    Int
+  size        Int
+  imageUrl    String?
+  status      RoomStatus  @default(available)
+  bookings    Booking[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([status])
+  @@index([price])
+}
+
+model Booking {
+  id         String        @id @default(uuid())
+  userId     String
+  roomId     String
+  checkIn    DateTime
+  checkOut   DateTime
+  totalPrice Float
+  status     BookingStatus @default(pending)
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room       Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([roomId])
+  @@index([status])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
