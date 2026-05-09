@@ -1,12 +1,10 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import Navbar from "../components/Navbar";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +24,7 @@ export default function RegisterPage() {
         method: "POST",
         body: JSON.stringify({ name, email, password }),
       });
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     } catch (err: any) {
       setError(err.message);
     } finally {
