@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "../components/Navbar";
-import { apiFetch } from "@/lib/api";
 
 interface Room {
   id: string;
@@ -16,14 +15,17 @@ interface Room {
   status: string;
 }
 
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:7000";
+
 export default function RoomsPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    apiFetch<{ data: Room[] }>("/api/rooms?limit=20")
-      .then((res) => setRooms(res.data))
+    fetch(`${BASE}/api/rooms?limit=20`)
+      .then((r) => r.json())
+      .then((res) => setRooms(res.data || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -52,28 +54,39 @@ export default function RoomsPage() {
             Выберите идеальный номер
           </h1>
           <p style={{ color: "#7a5c45" }} className="text-base mb-10">
-            От уютного стандарта до роскошного президентского люкса
+            От уютного стандарта до роскошного президентского люкса в Астане
           </p>
 
           <div
             style={{ border: "1px solid #e8d5c0" }}
             className="bg-white rounded-2xl p-5 flex gap-4 flex-wrap items-end shadow-sm"
           >
-            {["checkIn", "checkOut"].map((field) => (
-              <div key={field} className="flex flex-col flex-1 min-w-28">
-                <label
-                  className="text-xs font-medium uppercase tracking-wide mb-1"
-                  style={{ color: "#a08060" }}
-                >
-                  {field === "checkIn" ? "Заезд" : "Выезд"}
-                </label>
-                <input
-                  type="date"
-                  className="border-none outline-none text-sm bg-transparent py-1"
-                  style={{ color: "#3d2b1f" }}
-                />
-              </div>
-            ))}
+            <div className="flex flex-col flex-1 min-w-28">
+              <label
+                className="text-xs font-medium uppercase tracking-wide mb-1"
+                style={{ color: "#a08060" }}
+              >
+                Заезд
+              </label>
+              <input
+                type="date"
+                className="border-none outline-none text-sm bg-transparent py-1"
+                style={{ color: "#3d2b1f" }}
+              />
+            </div>
+            <div className="flex flex-col flex-1 min-w-28">
+              <label
+                className="text-xs font-medium uppercase tracking-wide mb-1"
+                style={{ color: "#a08060" }}
+              >
+                Выезд
+              </label>
+              <input
+                type="date"
+                className="border-none outline-none text-sm bg-transparent py-1"
+                style={{ color: "#3d2b1f" }}
+              />
+            </div>
             <div className="flex flex-col flex-1 min-w-20">
               <label
                 className="text-xs font-medium uppercase tracking-wide mb-1"
@@ -136,15 +149,27 @@ export default function RoomsPage() {
               />
             ))}
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20">
+            <p
+              style={{ color: "#3d2b1f" }}
+              className="text-lg font-medium mb-2"
+            >
+              Номера не найдены
+            </p>
+            <p style={{ color: "#a08060" }} className="text-sm">
+              Попробуйте изменить фильтры
+            </p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {filtered.map((room) => (
               <div
                 key={room.id}
                 style={{ border: "1px solid #e8d5c0" }}
-                className="rounded-2xl overflow-hidden hover:shadow-md transition group bg-white"
+                className="rounded-2xl overflow-hidden hover:shadow-lg transition group bg-white"
               >
-                <div className="relative h-44">
+                <div className="relative h-48">
                   <Image
                     src={
                       room.imageUrl ||
@@ -159,16 +184,18 @@ export default function RoomsPage() {
                       backgroundColor:
                         room.status === "available" ? "#5caa7f" : "#e06b6b",
                     }}
-                    className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full border-2 border-white"
+                    className="absolute top-3 right-3 w-3 h-3 rounded-full border-2 border-white"
                   />
+                  <div
+                    style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+                    className="absolute bottom-0 left-0 right-0 px-3 py-2"
+                  >
+                    <div className="text-white font-medium text-sm">
+                      {room.title}
+                    </div>
+                  </div>
                 </div>
                 <div className="p-4">
-                  <div
-                    style={{ color: "#3d2b1f" }}
-                    className="font-medium mb-1"
-                  >
-                    {room.title}
-                  </div>
                   <div style={{ color: "#a08060" }} className="text-xs mb-3">
                     {room.capacity} гостя · {room.size} м²
                   </div>

@@ -17,6 +17,8 @@ interface Room {
   status: string;
 }
 
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:7000";
+
 export default function RoomDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -29,7 +31,8 @@ export default function RoomDetailPage() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    apiFetch<Room>(`/api/rooms/${id}`)
+    fetch(`${BASE}/api/rooms/${id}`)
+      .then((r) => r.json())
       .then(setRoom)
       .catch(() => router.replace("/rooms"))
       .finally(() => setLoading(false));
@@ -56,10 +59,10 @@ export default function RoomDetailPage() {
         body: JSON.stringify({ roomId: id, checkIn, checkOut }),
       });
       setSuccess("Бронирование успешно создано!");
-      setTimeout(() => router.push("/dashboard"), 2000);
+      setTimeout(() => (window.location.href = "/dashboard"), 2000);
     } catch (err: any) {
       if (err.message === "Unauthorized") {
-        router.push("/login");
+        window.location.href = "/login";
       } else {
         setError(err.message);
       }
@@ -98,7 +101,7 @@ export default function RoomDetailPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           <div>
-            <div className="relative h-80 rounded-3xl overflow-hidden mb-4">
+            <div className="relative h-96 rounded-3xl overflow-hidden mb-4">
               <Image
                 src={
                   room.imageUrl ||
@@ -108,16 +111,6 @@ export default function RoomDetailPage() {
                 fill
                 className="object-cover"
               />
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              {[room.imageUrl, room.imageUrl, room.imageUrl].map((img, i) => (
-                <div
-                  key={i}
-                  className="relative h-20 rounded-xl overflow-hidden"
-                >
-                  <Image src={img || ""} alt="" fill className="object-cover" />
-                </div>
-              ))}
             </div>
           </div>
 
@@ -131,7 +124,7 @@ export default function RoomDetailPage() {
                   {room.title}
                 </h1>
                 <div style={{ color: "#a08060" }} className="text-sm">
-                  {room.capacity} гостя · {room.size} м²
+                  {room.capacity} гостя · {room.size} м² · Астана
                 </div>
               </div>
               <div
@@ -154,17 +147,22 @@ export default function RoomDetailPage() {
             </p>
 
             <div
-              style={{ border: "1px solid #e8d5c0" }}
-              className="rounded-2xl p-6 mb-6"
+              style={{
+                border: "1px solid #e8d5c0",
+                backgroundColor: "#f9f6f2",
+              }}
+              className="rounded-2xl p-5 mb-6"
             >
-              <div
-                style={{ color: "#c9a87c" }}
-                className="text-3xl font-semibold mb-1"
-              >
-                {room.price.toLocaleString()} ₸
-              </div>
-              <div style={{ color: "#a08060" }} className="text-sm">
-                за ночь
+              <div className="flex items-baseline gap-2">
+                <span
+                  style={{ color: "#c9a87c" }}
+                  className="text-3xl font-semibold"
+                >
+                  {room.price.toLocaleString()} ₸
+                </span>
+                <span style={{ color: "#a08060" }} className="text-sm">
+                  за ночь
+                </span>
               </div>
             </div>
 
@@ -180,13 +178,14 @@ export default function RoomDetailPage() {
                     {success}
                   </div>
                 )}
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label
                       style={{ color: "#7a5c45" }}
                       className="block text-sm mb-2"
                     >
-                      Заезд
+                      Дата заезда
                     </label>
                     <input
                       type="date"
@@ -202,7 +201,7 @@ export default function RoomDetailPage() {
                       style={{ color: "#7a5c45" }}
                       className="block text-sm mb-2"
                     >
-                      Выезд
+                      Дата выезда
                     </label>
                     <input
                       type="date"
@@ -256,12 +255,18 @@ export default function RoomDetailPage() {
 
                 <button
                   type="submit"
-                  disabled={booking || !checkIn || !checkOut}
+                  disabled={booking || !checkIn || !checkOut || nights <= 0}
                   style={{ backgroundColor: "#c9a87c" }}
                   className="w-full text-white font-medium rounded-xl py-4 text-sm hover:opacity-90 transition disabled:opacity-50"
                 >
-                  {booking ? "Бронируем..." : "Забронировать"}
+                  {booking
+                    ? "Бронируем..."
+                    : `Забронировать${nights > 0 ? ` — ${(room.price * nights).toLocaleString()} ₸` : ""}`}
                 </button>
+
+                <p style={{ color: "#a08060" }} className="text-xs text-center">
+                  Нужно войти в аккаунт чтобы забронировать
+                </p>
               </form>
             )}
           </div>

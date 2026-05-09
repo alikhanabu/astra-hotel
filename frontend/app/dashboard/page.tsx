@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "../components/Navbar";
 import { apiFetch } from "@/lib/api";
 
@@ -28,7 +28,6 @@ const statusMap: Record<string, { label: string; bg: string; color: string }> =
   };
 
 export default function DashboardPage() {
-  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +41,9 @@ export default function DashboardPage() {
         setUser(u);
         setBookings(b);
       })
-      .catch(() => router.replace("/login"))
+      .catch(() => {
+        window.location.href = "/login";
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -78,14 +79,18 @@ export default function DashboardPage() {
     <div style={{ backgroundColor: "#f9f6f2", minHeight: "100vh" }}>
       <Navbar />
       <main className="max-w-5xl mx-auto px-6 py-10">
-        <div className="flex items-center gap-5 mb-10">
+        {/* Профиль */}
+        <div
+          style={{ border: "1px solid #e8d5c0", backgroundColor: "#fff" }}
+          className="rounded-2xl p-6 mb-6 flex items-center gap-5"
+        >
           <div
             style={{ backgroundColor: "#c9a87c" }}
-            className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-semibold"
+            className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-semibold flex-shrink-0"
           >
             {user?.name[0].toUpperCase()}
           </div>
-          <div>
+          <div className="flex-1">
             <h1 style={{ color: "#3d2b1f" }} className="text-2xl font-semibold">
               {user?.name}
             </h1>
@@ -103,16 +108,17 @@ export default function DashboardPage() {
             <Link
               href="/admin"
               style={{ backgroundColor: "#3d2b1f" }}
-              className="ml-auto text-white text-sm px-5 py-3 rounded-xl hover:opacity-90 transition"
+              className="text-white text-sm px-5 py-3 rounded-xl hover:opacity-90 transition"
             >
               Панель администратора
             </Link>
           )}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        {/* Статистика */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: "Всего бронирований", value: bookings.length },
+            { label: "Бронирований", value: bookings.length },
             {
               label: "Подтверждено",
               value: bookings.filter((b) => b.status === "confirmed").length,
@@ -151,6 +157,7 @@ export default function DashboardPage() {
           ))}
         </div>
 
+        {/* Бронирования */}
         <div className="flex items-center justify-between mb-5">
           <h2 style={{ color: "#3d2b1f" }} className="text-lg font-semibold">
             Мои бронирования
@@ -176,7 +183,7 @@ export default function DashboardPage() {
               Бронирований пока нет
             </p>
             <p style={{ color: "#a08060" }} className="text-sm mb-6">
-              Найдите и забронируйте идеальный номер
+              Найдите и забронируйте идеальный номер в Астане
             </p>
             <Link
               href="/rooms"
@@ -205,10 +212,14 @@ export default function DashboardPage() {
                   className="rounded-2xl p-5 flex items-center gap-5"
                 >
                   <div className="relative w-20 h-16 rounded-xl overflow-hidden flex-shrink-0">
-                    <img
-                      src={b.room.imageUrl}
+                    <Image
+                      src={
+                        b.room.imageUrl ||
+                        "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400"
+                      }
                       alt={b.room.title}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                   </div>
                   <div className="flex-1 min-w-0">

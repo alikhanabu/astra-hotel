@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "../components/Navbar";
@@ -22,7 +21,7 @@ interface Booking {
   checkIn: string;
   checkOut: string;
   user: { name: string; email: string };
-  room: { title: string };
+  room: { title: string; imageUrl: string };
 }
 interface User {
   id: string;
@@ -31,8 +30,9 @@ interface User {
   role: string;
 }
 
+const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:7000";
+
 export default function AdminPage() {
-  const router = useRouter();
   const [tab, setTab] = useState<"rooms" | "bookings" | "users">("rooms");
   const [rooms, setRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -52,14 +52,16 @@ export default function AdminPage() {
   useEffect(() => {
     apiFetch<{ id: string; role: string }>("/api/auth/me")
       .then((u) => {
-        if (u.role !== "ADMIN") router.replace("/dashboard");
+        if (u.role !== "ADMIN") window.location.href = "/dashboard";
       })
-      .catch(() => router.replace("/login"));
+      .catch(() => {
+        window.location.href = "/login";
+      });
 
     Promise.all([
-      apiFetch<{ data: Room[] }>("/api/rooms?limit=50").then((r) =>
-        setRooms(r.data),
-      ),
+      fetch(`${BASE}/api/rooms?limit=50`)
+        .then((r) => r.json())
+        .then((r) => setRooms(r.data || [])),
       apiFetch<Booking[]>("/api/bookings").then(setBookings),
       apiFetch<User[]>("/api/users").then(setUsers),
     ]).finally(() => setLoading(false));
@@ -130,7 +132,7 @@ export default function AdminPage() {
               Панель администратора
             </h1>
             <p style={{ color: "#a08060" }} className="text-sm mt-1">
-              Управление отелем Astra
+              Управление отелем Astra · Астана
             </p>
           </div>
           <Link
@@ -248,7 +250,7 @@ export default function AdminPage() {
                     style={{ color: "#7a5c45" }}
                     className="block text-xs mb-1"
                   >
-                    URL фото
+                    URL фото (с Unsplash)
                   </label>
                   <input
                     type="url"
@@ -354,6 +356,11 @@ export default function AdminPage() {
 
         {tab === "bookings" && (
           <div className="flex flex-col gap-3">
+            {bookings.length === 0 && (
+              <div className="text-center py-10" style={{ color: "#a08060" }}>
+                Бронирований пока нет
+              </div>
+            )}
             {bookings.map((b) => {
               const s = statusMap[b.status] || statusMap.pending;
               return (
@@ -365,6 +372,17 @@ export default function AdminPage() {
                   }}
                   className="rounded-2xl p-5 flex items-center gap-4"
                 >
+                  <div className="relative w-16 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                    <Image
+                      src={
+                        b.room.imageUrl ||
+                        "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400"
+                      }
+                      alt=""
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                   <div className="flex-1">
                     <div
                       style={{ color: "#3d2b1f" }}
@@ -389,23 +407,23 @@ export default function AdminPage() {
                   </div>
                   <span
                     style={{ backgroundColor: s.bg, color: s.color }}
-                    className="text-xs px-3 py-1.5 rounded-full font-medium"
+                    className="text-xs px-3 py-1.5 rounded-full font-medium flex-shrink-0"
                   >
                     {s.label}
                   </span>
                   {b.status === "pending" && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-shrink-0">
                       <button
                         onClick={() => updateBookingStatus(b.id, "confirmed")}
                         style={{ backgroundColor: "#e6f5ee", color: "#2d8a55" }}
-                        className="text-xs px-3 py-1.5 rounded-lg hover:opacity-80 transition"
+                        className="text-xs px-3 py-1.5 rounded-lg hover:opacity-80"
                       >
                         Подтвердить
                       </button>
                       <button
                         onClick={() => updateBookingStatus(b.id, "cancelled")}
                         style={{ backgroundColor: "#fdeaea", color: "#c04040" }}
-                        className="text-xs px-3 py-1.5 rounded-lg hover:opacity-80 transition"
+                        className="text-xs px-3 py-1.5 rounded-lg hover:opacity-80"
                       >
                         Отменить
                       </button>

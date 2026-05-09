@@ -14,25 +14,20 @@ export async function apiFetch<T = any>(
   });
 
   if (res.status === 401) {
-    const refreshed = await fetch(`${BASE}/api/auth/refresh`, {
-      method: "POST",
-      credentials: "include",
-    });
-    if (refreshed.ok) {
-      const retry = await fetch(`${BASE}${path}`, {
-        ...options,
+    try {
+      const refreshed = await fetch(`${BASE}/api/auth/refresh`, {
+        method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          ...options?.headers,
-        },
       });
-      if (!retry.ok) {
-        const err = await retry.json().catch(() => ({}));
-        throw new Error(err.message || "Ошибка запроса");
+      if (refreshed.ok) {
+        const retry = await fetch(`${BASE}${path}`, {
+          ...options,
+          credentials: "include",
+          headers: { "Content-Type": "application/json", ...options?.headers },
+        });
+        if (retry.ok) return retry.json();
       }
-      return retry.json();
-    }
+    } catch {}
     throw new Error("Unauthorized");
   }
 

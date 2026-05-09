@@ -1,15 +1,18 @@
 import Link from "next/link";
-import Navbar from "./components/Navbar";
 import Image from "next/image";
+import Navbar from "./components/Navbar";
 
 const features = [
   {
     title: "Бесплатный Wi-Fi",
-    desc: "Высокоскоростной интернет во всех номерах",
+    desc: "Высокоскоростной интернет во всех номерах и зонах отеля",
   },
-  { title: "Завтрак включён", desc: "Шведский стол с 7:00 до 10:30" },
-  { title: "Бассейн и спа", desc: "Открытый бассейн и спа-центр" },
-  { title: "Трансфер", desc: "Трансфер из аэропорта 24/7" },
+  {
+    title: "Завтрак включён",
+    desc: "Шведский стол с 7:00 до 10:30 каждый день",
+  },
+  { title: "Бассейн и СПА", desc: "Крытый бассейн, сауна и спа-центр 24/7" },
+  { title: "Трансфер", desc: "Трансфер из аэропорта Нурсултан Назарбаев 24/7" },
 ];
 
 export default function HomePage() {
@@ -28,7 +31,7 @@ export default function HomePage() {
               style={{ backgroundColor: "#c9a87c" }}
               className="inline-block text-white text-xs px-4 py-1.5 rounded-full mb-6"
             >
-              Премиум отель · 5 звёзд · Алматы
+              Премиум отель · 5 звёзд · Астана
             </span>
             <h1
               style={{ color: "#3d2b1f" }}
@@ -45,7 +48,7 @@ export default function HomePage() {
               className="text-lg mb-10 leading-relaxed"
             >
               Роскошные номера, безупречный сервис
-              <br />и незабываемые впечатления в сердце города.
+              <br />и незабываемые впечатления в сердце Астаны.
             </p>
             <div className="flex gap-4 flex-wrap">
               <Link
@@ -65,10 +68,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="flex-1 relative">
-            <div
-              style={{ backgroundColor: "#e8d5b7" }}
-              className="w-full h-80 rounded-3xl overflow-hidden relative"
-            >
+            <div className="w-full h-80 rounded-3xl overflow-hidden relative">
               <Image
                 src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800"
                 alt="Astra Hotel"
@@ -80,8 +80,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Search bar */}
-      <section className="px-6 py-8 max-w-4xl mx-auto -mt-8 relative z-10">
+      {/* Search */}
+      <section className="px-6 py-8 max-w-4xl mx-auto -mt-6 relative z-10">
         <div
           style={{ border: "1px solid #e8d5c0" }}
           className="bg-white rounded-2xl p-5 shadow-lg flex gap-4 flex-wrap items-end"
@@ -200,10 +200,15 @@ export default function HomePage() {
                 style={{ border: "1px solid #e8d5c0" }}
               >
                 <div
-                  style={{ backgroundColor: "#f5efe6", color: "#c9a87c" }}
-                  className="w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-4 font-bold"
+                  style={{ backgroundColor: "#f5efe6" }}
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
                 >
-                  A
+                  <div
+                    style={{ color: "#c9a87c" }}
+                    className="text-xl font-bold"
+                  >
+                    A
+                  </div>
                 </div>
                 <div style={{ color: "#3d2b1f" }} className="font-medium mb-2">
                   {f.title}
@@ -224,10 +229,7 @@ export default function HomePage() {
       <section id="about" className="px-6 py-20">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-12 items-center">
           <div className="flex-1">
-            <div
-              style={{ backgroundColor: "#f5efe6" }}
-              className="w-full h-72 rounded-3xl overflow-hidden relative"
-            >
+            <div className="w-full h-72 rounded-3xl overflow-hidden relative">
               <Image
                 src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800"
                 alt="О нас"
@@ -254,8 +256,8 @@ export default function HomePage() {
               className="text-base leading-relaxed mb-6"
             >
               Мы предлагаем уютные номера с современным дизайном, первоклассный
-              сервис и незабываемые впечатления. Расположены в центре Алматы, в
-              шаговой доступности от главных достопримечательностей.
+              сервис и незабываемые впечатления. Расположены в центре Астаны, в
+              шаговой доступности от Байтерека и ЭКСПО.
             </p>
             <Link
               href="/rooms"
@@ -280,10 +282,10 @@ export default function HomePage() {
               Astra Hotel
             </div>
             <div style={{ color: "#c9a87c" }} className="text-sm mb-1">
-              5 звёзд · Алматы
+              5 звёзд · Астана
             </div>
             <div style={{ color: "#a08060" }} className="text-sm">
-              Проспект Достык 5, Алматы
+              пр. Мәңгілік Ел 55, Астана
             </div>
           </div>
           <div>
@@ -291,7 +293,7 @@ export default function HomePage() {
               Контакты
             </div>
             <div style={{ color: "#a08060" }} className="text-sm space-y-1">
-              <div>+7 (727) 123-45-67</div>
+              <div>+7 (7172) 123-45-67</div>
               <div>info@astrahotel.kz</div>
             </div>
           </div>

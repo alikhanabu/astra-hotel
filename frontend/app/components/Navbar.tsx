@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
-import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
@@ -13,7 +12,6 @@ interface User {
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
     apiFetch<User>("/api/auth/me")
@@ -25,7 +23,7 @@ export default function Navbar() {
     try {
       await apiFetch("/api/auth/logout", { method: "POST" });
     } catch {}
-    router.replace("/login");
+    window.location.href = "/login";
   }
 
   return (
@@ -48,7 +46,7 @@ export default function Navbar() {
             Astra Hotel
           </div>
           <div style={{ color: "#c9a87c" }} className="text-xs">
-            5 звёзд · Алматы
+            5 звёзд · Астана
           </div>
         </div>
       </Link>
