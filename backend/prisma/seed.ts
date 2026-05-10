@@ -6,13 +6,11 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Заполняем базу данных...');
 
-  // Очищаем таблицы перед заполнением
   await prisma.booking.deleteMany();
   await prisma.refreshToken.deleteMany();
   await prisma.room.deleteMany();
   await prisma.user.deleteMany();
 
-  // Создаём пользователей
   const adminPassword = await bcrypt.hash('admin123', 10);
   const userPassword = await bcrypt.hash('user123', 10);
 
@@ -34,15 +32,25 @@ async function main() {
     },
   });
 
-  console.log('Пользователи созданы:', admin.email, user.email);
-
-  // Создаём номера
   const rooms = await Promise.all([
+    prisma.room.create({
+      data: {
+        title: 'Эконом',
+        description:
+          'Уютный номер для бюджетного отдыха. Всё необходимое для комфортного проживания в Астане.',
+        price: 5900,
+        capacity: 1,
+        size: 18,
+        imageUrl:
+          'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800',
+        status: 'available',
+      },
+    }),
     prisma.room.create({
       data: {
         title: 'Стандарт',
         description:
-          'Уютный номер с двуспальной кроватью, Wi-Fi и телевизором. Идеально для короткого отдыха.',
+          'Просторный номер с двуспальной кроватью, Wi-Fi и телевизором. Отличный выбор для пары.',
         price: 8900,
         capacity: 2,
         size: 28,
@@ -55,7 +63,7 @@ async function main() {
       data: {
         title: 'Стандарт Плюс',
         description:
-          'Улучшенный стандарт с видом на сад, зоной отдыха и расширенным набором удобств.',
+          'Улучшенный стандарт с видом на город и расширенным набором удобств.',
         price: 11000,
         capacity: 2,
         size: 32,
@@ -68,7 +76,7 @@ async function main() {
       data: {
         title: 'Делюкс',
         description:
-          'Просторный номер с балконом, завтраком включён, мини-бар и халат.',
+          'Просторный номер с балконом, завтраком, мини-баром и панорамным видом на Байтерек.',
         price: 14500,
         capacity: 2,
         size: 40,
@@ -79,25 +87,12 @@ async function main() {
     }),
     prisma.room.create({
       data: {
-        title: 'Делюкс с видом',
-        description:
-          'Делюкс номер с панорамным видом на город. Романтическая атмосфера.',
-        price: 17000,
-        capacity: 3,
-        size: 45,
-        imageUrl:
-          'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800',
-        status: 'booked',
-      },
-    }),
-    prisma.room.create({
-      data: {
         title: 'Семейный',
         description:
-          'Две спальни, детская кроватка и игровая зона. Всё для комфорта семьи.',
-        price: 22000,
-        capacity: 5,
-        size: 58,
+          'Две спальни, детская кроватка и игровая зона. Идеально для семьи с детьми.',
+        price: 18000,
+        capacity: 4,
+        size: 55,
         imageUrl:
           'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=800',
         status: 'available',
@@ -107,9 +102,9 @@ async function main() {
       data: {
         title: 'Люкс',
         description:
-          'Роскошный люкс с гостиной, джакузи и панорамным видом на город.',
+          'Роскошный люкс с гостиной, джакузи и панорамным видом на ночную Астану.',
         price: 28000,
-        capacity: 4,
+        capacity: 3,
         size: 65,
         imageUrl:
           'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=800',
@@ -120,56 +115,29 @@ async function main() {
       data: {
         title: 'Президентский',
         description:
-          'Лучший номер отеля. Личный дворецкий, панорамный вид, частный бассейн.',
-        price: 45000,
+          'Лучший номер отеля. Личный дворецкий, частная терраса с видом на ЭКСПО, всё включено.',
+        price: 55000,
         capacity: 6,
-        size: 90,
+        size: 110,
         imageUrl:
           'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800',
         status: 'available',
       },
     }),
-    prisma.room.create({
-      data: {
-        title: 'Студия',
-        description:
-          'Современная студия с кухонной зоной. Подходит для длительного проживания.',
-        price: 9500,
-        capacity: 2,
-        size: 35,
-        imageUrl:
-          'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800',
-        status: 'available',
-      },
-    }),
   ]);
 
-  console.log(`Создано ${rooms.length} номеров`);
-
-  // Создаём тестовые бронирования
   await prisma.booking.create({
     data: {
       userId: user.id,
-      roomId: rooms[0].id,
-      checkIn: new Date('2026-06-01'),
-      checkOut: new Date('2026-06-05'),
-      totalPrice: 8900 * 4,
+      roomId: rooms[1].id,
+      checkIn: new Date('2026-06-10'),
+      checkOut: new Date('2026-06-15'),
+      totalPrice: 8900 * 5,
       status: 'confirmed',
     },
   });
 
-  await prisma.booking.create({
-    data: {
-      userId: user.id,
-      roomId: rooms[2].id,
-      checkIn: new Date('2026-07-10'),
-      checkOut: new Date('2026-07-15'),
-      totalPrice: 14500 * 5,
-      status: 'pending',
-    },
-  });
-
-  console.log('Тестовые бронирования созданы');
+  console.log(`Создано ${rooms.length} номеров`);
   console.log('База данных заполнена успешно!');
 }
 
