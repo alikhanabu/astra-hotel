@@ -20,28 +20,24 @@ const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:7000";
 export default function RoomsPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
-  const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetch(`${BASE}/api/rooms?limit=20`)
-      .then((r) => r.json())
-      .then((res) => setRooms(res.data || []))
-      .catch(console.error)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((res) => {
+        console.log("Rooms response:", res);
+        setRooms(res.data || []);
+      })
+      .catch((err) => {
+        console.error("Error:", err);
+        setError(err.message);
+      })
       .finally(() => setLoading(false));
   }, []);
-
-  const filtered = rooms.filter((r) => {
-    const matchFilter = filter === "all" || r.status === "available";
-    const matchSearch = r.title.toLowerCase().includes(search.toLowerCase());
-    return matchFilter && matchSearch;
-  });
-
-  const priceRanges = [
-    { label: "до 10 000 ₸", min: 0, max: 10000 },
-    { label: "10 000 – 20 000 ₸", min: 10000, max: 20000 },
-    { label: "от 20 000 ₸", min: 20000, max: 999999 },
-  ];
 
   return (
     <div style={{ backgroundColor: "#fff", minHeight: "100vh" }}>
@@ -57,120 +53,18 @@ export default function RoomsPage() {
           </span>
           <h1
             style={{ color: "#3d2b1f" }}
-            className="text-4xl font-semibold mt-2 mb-3"
+            className="text-4xl font-semibold mt-2 mb-2"
           >
             Выберите идеальный номер
           </h1>
-          <p style={{ color: "#7a5c45" }} className="text-base mb-10">
+          <p style={{ color: "#7a5c45" }} className="text-base">
             От уютного эконома до роскошного президентского люкса в Астане
           </p>
-
-          <div
-            style={{ border: "1px solid #e8d5c0" }}
-            className="bg-white rounded-2xl p-5 flex gap-4 flex-wrap items-end shadow-sm"
-          >
-            <div className="flex flex-col flex-1 min-w-32">
-              <label
-                className="text-xs font-medium uppercase tracking-wide mb-1"
-                style={{ color: "#a08060" }}
-              >
-                Поиск
-              </label>
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Название номера..."
-                className="border-none outline-none text-sm bg-transparent py-1"
-                style={{ color: "#3d2b1f" }}
-              />
-            </div>
-            <div
-              style={{
-                width: 1,
-                backgroundColor: "#e8d5c0",
-                alignSelf: "stretch",
-              }}
-            />
-            <div className="flex flex-col flex-1 min-w-28">
-              <label
-                className="text-xs font-medium uppercase tracking-wide mb-1"
-                style={{ color: "#a08060" }}
-              >
-                Гостей
-              </label>
-              <select
-                className="border-none outline-none text-sm bg-transparent py-1"
-                style={{ color: "#3d2b1f" }}
-              >
-                <option>1 гость</option>
-                <option>2 гостя</option>
-                <option>3 гостя</option>
-                <option>4+ гостей</option>
-              </select>
-            </div>
-            <div
-              style={{
-                width: 1,
-                backgroundColor: "#e8d5c0",
-                alignSelf: "stretch",
-              }}
-            />
-            <div className="flex flex-col flex-1 min-w-36">
-              <label
-                className="text-xs font-medium uppercase tracking-wide mb-1"
-                style={{ color: "#a08060" }}
-              >
-                Бюджет
-              </label>
-              <select
-                className="border-none outline-none text-sm bg-transparent py-1"
-                style={{ color: "#3d2b1f" }}
-              >
-                <option>Любой</option>
-                {priceRanges.map((p) => (
-                  <option key={p.label}>{p.label}</option>
-                ))}
-              </select>
-            </div>
-            <button
-              onClick={() => setFilter("all")}
-              style={{ backgroundColor: "#c9a87c" }}
-              className="text-white text-sm px-8 py-3 rounded-xl hover:opacity-90 transition whitespace-nowrap font-medium"
-            >
-              Найти
-            </button>
-          </div>
         </div>
       </section>
 
       <section className="px-6 py-10 max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-          <p style={{ color: "#7a5c45" }} className="text-sm">
-            {loading ? "Загрузка..." : `Найдено ${filtered.length} номеров`}
-          </p>
-          <div className="flex gap-2">
-            {[
-              { key: "all", label: "Все" },
-              { key: "available", label: "Свободные" },
-            ].map((f) => (
-              <button
-                key={f.key}
-                onClick={() => setFilter(f.key)}
-                style={{
-                  border: "1px solid #e8d5c0",
-                  backgroundColor: filter === f.key ? "#c9a87c" : "transparent",
-                  color: filter === f.key ? "#fff" : "#7a5c45",
-                }}
-                className="text-sm px-5 py-2 rounded-full transition hover:opacity-80"
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {loading ? (
+        {loading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <div
@@ -180,21 +74,43 @@ export default function RoomsPage() {
               />
             ))}
           </div>
-        ) : filtered.length === 0 ? (
+        )}
+
+        {error && (
+          <div className="text-center py-20">
+            <p style={{ color: "#e06b6b" }} className="text-sm mb-2">
+              Ошибка загрузки: {error}
+            </p>
+            <p style={{ color: "#a08060" }} className="text-xs">
+              URL: {BASE}/api/rooms
+            </p>
+          </div>
+        )}
+
+        {!loading && !error && rooms.length === 0 && (
           <div className="text-center py-20">
             <p
               style={{ color: "#3d2b1f" }}
               className="text-lg font-medium mb-2"
             >
-              Номера не найдены
+              Номеров пока нет
             </p>
             <p style={{ color: "#a08060" }} className="text-sm">
-              Попробуйте изменить фильтры
+              Добавьте номера через панель администратора
             </p>
+            <Link
+              href="/admin"
+              style={{ backgroundColor: "#c9a87c" }}
+              className="inline-block mt-4 text-white px-6 py-2 rounded-xl text-sm"
+            >
+              Панель ADMIN
+            </Link>
           </div>
-        ) : (
+        )}
+
+        {!loading && rooms.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((room) => (
+            {rooms.map((room) => (
               <div
                 key={room.id}
                 style={{ border: "1px solid #e8d5c0" }}
@@ -209,6 +125,7 @@ export default function RoomsPage() {
                     alt={room.title}
                     fill
                     className="object-cover group-hover:scale-105 transition duration-500"
+                    unoptimized
                   />
                   <div
                     style={{
@@ -230,7 +147,7 @@ export default function RoomsPage() {
                     </h3>
                     <div
                       style={{ color: "#c9a87c" }}
-                      className="font-semibold text-base"
+                      className="font-semibold text-base whitespace-nowrap ml-2"
                     >
                       {room.price.toLocaleString()} ₸
                       <span
@@ -243,7 +160,7 @@ export default function RoomsPage() {
                   </div>
                   <div style={{ color: "#a08060" }} className="text-xs mb-3">
                     {room.capacity} {room.capacity === 1 ? "гость" : "гостя"} ·{" "}
-                    {room.size} м² · Астана
+                    {room.size} м²
                   </div>
                   <p
                     style={{ color: "#7a5c45" }}
@@ -257,7 +174,7 @@ export default function RoomsPage() {
                       style={{ backgroundColor: "#c9a87c" }}
                       className="block text-center text-white text-sm py-2.5 rounded-xl hover:opacity-90 transition font-medium"
                     >
-                      Забронировать
+                      Подробнее и забронировать
                     </Link>
                   ) : (
                     <div
